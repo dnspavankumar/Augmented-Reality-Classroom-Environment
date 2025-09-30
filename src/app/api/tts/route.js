@@ -15,8 +15,8 @@ export async function GET(req) {
 
     // Map teacher names to ElevenLabs voice IDs
     const voiceMap = {
-      'Nanami': 'yl19hOoXOguaOr6ELkeE', // Provided voice ID for Nanami
-      'Naoki': 'NFG5qt843uXKj4pFvR7C'   // Provided voice ID for Naoki
+      'Nanami': 'rCuVrCHOUMY3OwyJBJym', // Provided voice ID for Nanami
+      'Naoki': 'H53NeKIHK4upDFLnIv9Z'   // Provided voice ID for Naoki
     };
 
     const voiceId = voiceMap[teacher] || voiceMap['Nanami'];
@@ -48,11 +48,11 @@ export async function GET(req) {
       // Simple retry mechanism
       const maxRetries = 3;
       let lastError;
-      
+
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
           console.log(`Attempt ${attempt} to call ElevenLabs API`);
-          
+
           // First, verify the voice exists
           const voiceResponse = await fetch(
             `https://api.elevenlabs.io/v1/voices/${voiceId}`,
@@ -106,19 +106,19 @@ export async function GET(req) {
           // If response is not ok, handle it
           const errorText = await response.text();
           lastError = new Error(`TTS API error: ${response.status} ${response.statusText} - ${errorText}`);
-          
+
           // If it's a 429 (rate limit) or 5xx error, we'll retry
           if (response.status !== 429 && response.status < 500) {
             throw lastError; // Don't retry for client errors (4xx)
           }
-          
+
           console.warn(`Attempt ${attempt} failed:`, lastError.message);
-          
+
         } catch (error) {
           lastError = error;
           console.warn(`Attempt ${attempt} failed:`, error.message);
         }
-        
+
         // Wait before retrying (exponential backoff: 1s, 2s, 4s)
         if (attempt < maxRetries) {
           const delay = Math.pow(2, attempt - 1) * 1000;
@@ -126,15 +126,15 @@ export async function GET(req) {
           await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
-      
+
       // If we get here, all retries failed
       throw lastError;
     } catch (error) {
       console.error('Error in TTS API call:', error);
       return NextResponse.json(
-        { 
+        {
           error: 'Error processing TTS request',
-          details: error.message 
+          details: error.message
         },
         { status: 500 }
       );
@@ -142,7 +142,7 @@ export async function GET(req) {
   } catch (error) {
     console.error('Error in TTS route:', error);
     return NextResponse.json(
-      { 
+      {
         error: 'Internal server error',
         details: error.message
       },

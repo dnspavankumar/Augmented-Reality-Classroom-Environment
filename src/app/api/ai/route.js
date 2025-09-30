@@ -1,7 +1,7 @@
-import OpenAI from "openai";
+import Groq from "groq-sdk";
 
-const openai = new OpenAI({
-  apiKey: process.env["OPENAI_API_KEY"], // This is the default and can be omitted
+const groq = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
 });
 
 const exampleResponse = {
@@ -33,7 +33,7 @@ export async function GET(req) {
 
   const question = req.nextUrl.searchParams.get("question") || "What is the Pythagorean theorem?";
 
-  const chatCompletion = await openai.chat.completions.create({
+  const chatCompletion = await groq.chat.completions.create({
     messages: [
       {
         role: "system",
@@ -48,31 +48,27 @@ You should respond with:
 - formula: If applicable, include any relevant formulas or equations (optional)
 
 Example response format: ${JSON.stringify(exampleResponse)}
-`,
-      },
-      {
-        role: "system",
-        content: `You always respond with a JSON object with the following format: 
-        {
-          "question": "",
-          "answer": "",
-          "explanation": [{
-            "step": "",
-            "description": "",
-            "keyPoints": ["", ""]
-          }],
-          "formula": ""
-        }
-        
-        The formula field is optional and should only be included if relevant to the question.`,
+
+You always respond with a JSON object with the following format: 
+{
+  "question": "",
+  "answer": "",
+  "explanation": [{
+    "step": "",
+    "description": "",
+    "keyPoints": ["", ""]
+  }],
+  "formula": ""
+}
+
+The formula field is optional and should only be included if relevant to the question.`,
       },
       {
         role: "user",
         content: question,
       },
     ],
-    // model: "gpt-4-turbo-preview", // https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo
-    model: "gpt-3.5-turbo", // https://help.openai.com/en/articles/7102672-how-can-i-access-gpt-4
+    model: "llama-3.1-8b-instant", // Using Groq's Llama model
     response_format: {
       type: "json_object",
     },
